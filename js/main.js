@@ -38,10 +38,13 @@ window.onkeyup = function(e) {
 };
 
 
+
 var Main = arc.Class.create(arc.Game, {
 	"initialize" : function() {
 		var self = this;
-		
+		if (arc.ua.isMobile) {
+			system.setFullScreen();
+		}
 		var root = new arc.display.Shape();
 		root.beginFill(0x000000, 1.0);
 		root.drawRect(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
@@ -50,9 +53,51 @@ var Main = arc.Class.create(arc.Game, {
 		
 		this.mario = new Mario();
 		this.addChild(this.mario.clip);
+		
+		this.addEventListener(arc.Event.TOUCH_START, this.touchStartHandler);
+		this.addEventListener(arc.Event.TOUCH_MOVE, this.touchMoveHandler);
+		this.addEventListener(arc.Event.TOUCH_END, this.touchEndHandler);
 	} , 
 	"update" : function() {
 		this.mario.update();
+	},
+	"touched" : function(x,y) {
+		var res = null;
+		if (x > y) {
+			// y = SCREEN_WIDTH - x
+			if (y < SCREEN_WIDTH - x) 
+				res = 'up';
+			else 
+				res = 'right';
+		} else {
+			if (y < SCREEN_WIDTH - x) 
+				res = 'left';
+			else 
+				res = 'down';
+		}
+		return res;
+	},
+	"touchStartHandler" : function(e) {
+		if (this._touched) {
+			inputs[this._touched] = false;
+			this._touched = null;
+		}
+		this._touched = this.touched(e.x, e.y);
+		inputs[this._touched] = true;
+	} , 
+	"touchMoveHandler" : function(e) {
+		if (this._touched) {
+			inputs[this._touched] = false;
+			this._touched = null;
+		}
+		this._touched = this.touched(e.x, e.y);
+		inputs[this._touched] = true;
+	} , 
+	"touchEndHandler" : function(e) {
+		if (this._touched) {
+			inputs[this._touched] = false;
+			this._touched = null;
+		}
 	}
 });
 var Mario = arc.Class.create({
